@@ -9,6 +9,8 @@ credentials.json
 *.png
 *.jpg
 *.jpeg
+*.docx
+generate_report.py
 
 # Terraform
 **/.terraform/
