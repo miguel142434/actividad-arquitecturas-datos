@@ -1,0 +1,7 @@
+# Variables de configuración para Terraform (Copiar a terraform.tfvars)
+aws_region          = "us-east-1"
+project_name        = "datalake-rss-eltiempo"
+environment         = "dev"
+instance_type       = "t3.medium"
+allowed_cidr_blocks = ["0.0.0.0/0"] # Opcional: restringe a tu IP pública: ["TU_IP/32"]
+key_name            = ""           # Nombre de tu Key Pair en AWS (ejemplo: "vockey" en AWS Academy o tu llave personal)

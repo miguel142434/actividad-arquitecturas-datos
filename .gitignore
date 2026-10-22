@@ -1,0 +1,38 @@
+# Variables de entorno y credenciales
+.env
+*.env
+*.pem
+credentials.json
+
+# Archivos binarios y capturas de pantalla solicitadas
+*.pdf
+*.png
+*.jpg
+*.jpeg
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+terraform.tfvars
+old_state_backup/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# Airflow
+**/logs/
+airflow.cfg
+airflow.db
+
+# Sistema Operativo
+.DS_Store
+Thumbs.db
