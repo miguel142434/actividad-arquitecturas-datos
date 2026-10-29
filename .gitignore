@@ -11,14 +11,18 @@ credentials.json
 *.jpeg
 *.docx
 generate_report.py
+pdf_extracted_*.txt
+pdf_extracted_datalake.txt
 
 # Terraform
 **/.terraform/
 *.tfstate
 *.tfstate.*
 *.tfstate.backup
+*.tfplan
 terraform.tfvars
 old_state_backup/
+deployment.tfplan
 
 # Python
 __pycache__/
