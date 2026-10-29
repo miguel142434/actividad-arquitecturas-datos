@@ -1,0 +1,29 @@
+digraph ArquitecturaAWS {
+  graph [rankdir=TB, bgcolor="white", fontname="Helvetica", fontsize=21,
+    label="DE-DW en AWS\nArquitectura del laboratorio ejecutado · us-east-1",
+    labelloc=t, pad=0.3, nodesep=0.5, ranksep=0.65, splines=polyline];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=15,
+    color="#94A3B8", fillcolor="#FFFFFF", margin="0.2,0.16"];
+  edge [fontname="Helvetica", fontsize=12, color="#334155", fontcolor="#334155", arrowsize=0.75];
+  subgraph cluster_aws {
+    label=""; color="#94A3B8"; style=rounded; fontsize=16;
+    subgraph cluster_vpc {
+      label="VPC del proyecto · bases de datos privadas";
+      color="#A78BFA"; style="rounded,filled"; fillcolor="#FAF8FF"; fontsize=15;
+      rds [label="RDS MySQL\nClientes, productos y pedidos", fillcolor="#DBEAFE", color="#2563EB"];
+      docdb [label="DocumentDB\nReseñas y eventos de navegación", fillcolor="#DBEAFE", color="#2563EB"];
+      ec2 [label="EC2 · Docker Compose\nAirflow + scripts Python + dbt\nPostgreSQL: metadatos de Airflow", fillcolor="#FFEDD5", color="#EA580C"];
+      redshift [label="Redshift Serverless\nraw → intermediate → marts\nquarantine + snapshots SCD2", fillcolor="#EDE9FE", color="#7C3AED"];
+      {rank=same; rds; docdb;}
+      rds -> ec2 [label="Extracción TLS"];
+      docdb -> ec2 [label="Extracción TLS"];
+      ec2 -> redshift [label="dbt envía SQL\ny valida calidad", style=dashed];
+    }
+    s3 [label="S3 privado\nCSV por fuente, entidad y lote\nManifiestos y control de avance", fillcolor="#DCFCE7", color="#16A34A"];
+    quicksight [label="QuickSight · SPICE\nKPI de ventas + gráfica mensual\nFiltro por categoría", fillcolor="#FCE7F3", color="#BE185D"];
+    ec2 -> s3 [label="Publica los archivos\npor endpoint S3"];
+    s3 -> redshift [label="COPY con rol IAM"];
+    redshift -> quicksight [label="Lectura por conexión\nVPC privada"];
+    ec2 -> quicksight [label="Refresca SPICE\ntras validar el lote", style=dashed, color="#BE185D", fontcolor="#9D174D", constraint=false];
+  }
+}

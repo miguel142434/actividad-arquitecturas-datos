@@ -1,0 +1,74 @@
+version: 2
+models:
+- name: quarantine_mysql__customers
+  description: Clientes rechazados por calidad de datos, con su motivo en rejection_reason.
+  columns:
+  - name: _batch_id
+    tests:
+    - not_null
+  tests:
+  - dbt_utils.unique_combination_of_columns:
+      arguments:
+        combination_of_columns:
+        - customer_id
+        - _batch_id
+- name: quarantine_mysql__products
+  description: Productos rechazados por calidad de datos, con su motivo en rejection_reason.
+  columns:
+  - name: _batch_id
+    tests:
+    - not_null
+  tests:
+  - dbt_utils.unique_combination_of_columns:
+      arguments:
+        combination_of_columns:
+        - product_id
+        - _batch_id
+- name: quarantine_mysql__orders
+  description: Pedidos rechazados por calidad de datos, con su motivo en rejection_reason.
+  columns:
+  - name: _batch_id
+    tests:
+    - not_null
+  tests:
+  - dbt_utils.unique_combination_of_columns:
+      arguments:
+        combination_of_columns:
+        - order_id
+        - _batch_id
+- name: quarantine_mysql__order_items
+  description: Líneas de pedido rechazadas por calidad de datos, con su motivo en rejection_reason.
+  columns:
+  - name: _batch_id
+    tests:
+    - not_null
+  tests:
+  - dbt_utils.unique_combination_of_columns:
+      arguments:
+        combination_of_columns:
+        - order_item_id
+        - _batch_id
+- name: quarantine_mongodb__reviews
+  description: Reseñas rechazadas por calidad de datos, con su motivo en rejection_reason.
+  columns:
+  - name: _batch_id
+    tests:
+    - not_null
+  tests:
+  - dbt_utils.unique_combination_of_columns:
+      arguments:
+        combination_of_columns:
+        - review_id
+        - _batch_id
+- name: quarantine_mongodb__navigation_events
+  description: Eventos de navegación rechazados por calidad de datos, con su motivo en rejection_reason.
+  columns:
+  - name: _batch_id
+    tests:
+    - not_null
+  tests:
+  - dbt_utils.unique_combination_of_columns:
+      arguments:
+        combination_of_columns:
+        - event_id
+        - _batch_id

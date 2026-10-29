@@ -1,0 +1,15 @@
+# Copiar como terraform.tfvars y completar, o usar prepare_terraform_rds.py.
+# No mantener a la vez terraform.tfvars y terraform.tfvars.json.
+aws_account_id      = "123456789012"
+# Decisión del laboratorio: SSH desde cualquier IPv4, solo con clave.
+ssh_allowed_cidr    = "0.0.0.0/0"
+ssh_public_key_path = "~/.ssh/id_ed25519.pub"
+# Región fija us-east-1; no se obtiene de la región por defecto de AWS CLI.
+# Las tres contraseñas se introducen mediante terraform_rds.py; no guardarlas aquí.
+# DocumentDB fijado en documentdb.tf: 5.0.0 / docdb5.0 / db.t3.medium Standard.
+# documentdb_password_version = 1 # aumentar únicamente al rotar su contraseña.
+
+# redshift_password_version = 1 # aumentar únicamente al rotar Redshift.
+
+# Solo tras activar la suscripción y autorizar costos/permisos de 3.6.
+# enable_quicksight = true

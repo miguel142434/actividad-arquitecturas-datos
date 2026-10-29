@@ -1,0 +1,6 @@
+*
+!docker/
+!docker/Dockerfile
+!requirements-sources.txt
+!requirements-ingestion.txt
+!requirements-warehouse.txt

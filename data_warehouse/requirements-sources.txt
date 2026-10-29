@@ -1,0 +1,4 @@
+# Versiones declaradas en el Dockerfile de DE-DW; sin Airflow ni DuckDB en esta porción.
+Faker==37.0.0
+PyMySQL==1.1.2
+pymongo==4.16.0

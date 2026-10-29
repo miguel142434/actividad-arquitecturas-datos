@@ -1,0 +1,5 @@
+-r requirements-ingestion.txt
+psycopg2-binary==2.9.13
+certifi==2026.10.23
+dbt-core==1.12.6
+dbt-redshift==1.11.1

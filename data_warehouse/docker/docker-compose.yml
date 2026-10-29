@@ -1,0 +1,107 @@
+name: de-dw-aws
+
+x-airflow-common: &airflow-common
+  image: local/ecommerce-aws-airflow:2.11.2
+  build:
+    context: .
+    dockerfile: docker/Dockerfile
+  user: "${AIRFLOW_UID:-50000}:0"
+  environment: &airflow-environment
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER:?Configure .env}:${POSTGRES_PASSWORD:?Configure .env}@postgres/airflow
+    AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW_FERNET_KEY:?Configure .env}
+    AIRFLOW__WEBSERVER__SECRET_KEY: ${AIRFLOW_SECRET_KEY:?Configure .env}
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    AIRFLOW__CORE__PARALLELISM: "4"
+    AIRFLOW__WEBSERVER__WORKERS: "1"
+    AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: "true"
+    PYTHONPATH: /opt/airflow/src
+    DBT_EXECUTABLE: /home/airflow/dbt-venv/bin/dbt
+    DBT_PYTHON: /home/airflow/dbt-venv/bin/python
+    DBT_SEND_ANONYMOUS_USAGE_STATS: "false"
+    PIPELINE_LOCK_FILE: /opt/warehouse/pipeline.lock
+    EXTRACT_WORKSPACE: /opt/warehouse/extracts
+    AWS_REGION: us-east-1
+    AWS_DEFAULT_REGION: us-east-1
+    MYSQL_HOST: ${MYSQL_HOST:?Configure RDS}
+    MYSQL_PORT: "3306"
+    MYSQL_DATABASE: ${MYSQL_DATABASE:-ecommerce}
+    MYSQL_USER: ${MYSQL_USER:-dwadmin}
+    MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Configure RDS}
+    MYSQL_SSL_CA: /opt/airflow/certs/global-bundle.pem
+    MONGODB_URI: ${MONGODB_URI:?Configure DocumentDB}
+    MONGO_DATABASE: ${MONGO_DATABASE:-ecommerce}
+    MONGO_TLS_CA_FILE: /opt/airflow/certs/global-bundle.pem
+    S3_RAW_BUCKET: ${S3_RAW_BUCKET:?Configure S3}
+    REDSHIFT_HOST: ${REDSHIFT_HOST:?Configure Redshift}
+    REDSHIFT_DATABASE: ${REDSHIFT_DATABASE:-ecommerce}
+    REDSHIFT_USER: ${REDSHIFT_USER:-dwadmin}
+    DBT_ENV_SECRET_REDSHIFT_PASSWORD: ${DBT_ENV_SECRET_REDSHIFT_PASSWORD:?Configure Redshift}
+    REDSHIFT_COPY_ROLE_ARN: ${REDSHIFT_COPY_ROLE_ARN:?Configure COPY role}
+    QUICKSIGHT_ACCOUNT_ID: ${QUICKSIGHT_ACCOUNT_ID:-}
+    QUICKSIGHT_DATASET_ID: ${QUICKSIGHT_DATASET_ID:-}
+  volumes:
+    - ./src/airflow/dags:/opt/airflow/dags:ro
+    - ./src:/opt/airflow/src
+    - ./certs:/opt/airflow/certs:ro
+    - airflow_logs:/opt/airflow/logs
+    - source_artifacts:/opt/warehouse
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?Configure .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Configure .env}
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d airflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  airflow-init:
+    <<: *airflow-common
+    user: "0:0"
+    entrypoint: /bin/bash
+    environment:
+      <<: *airflow-environment
+      AIRFLOW_UID: ${AIRFLOW_UID:-50000}
+      _AIRFLOW_DB_MIGRATE: "true"
+      _AIRFLOW_WWW_USER_CREATE: "true"
+      _AIRFLOW_WWW_USER_USERNAME: ${AIRFLOW_ADMIN_USERNAME:-airflow}
+      _AIRFLOW_WWW_USER_PASSWORD: ${AIRFLOW_ADMIN_PASSWORD:?Configure .env}
+    command:
+      - -c
+      - |
+        mkdir -p /opt/warehouse /opt/airflow/logs
+        chown "$${AIRFLOW_UID}:0" /opt/warehouse /opt/airflow/logs
+        chmod 0770 /opt/warehouse /opt/airflow/logs
+        exec /entrypoint airflow version
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  airflow-webserver:
+    <<: *airflow-common
+    command: webserver
+    ports:
+      - "127.0.0.1:${AIRFLOW_UI_PORT:-8080}:8080"
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
+volumes:
+  airflow_logs:
+  postgres_data:
+  source_artifacts:

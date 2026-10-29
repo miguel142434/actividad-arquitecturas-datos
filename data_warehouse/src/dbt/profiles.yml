@@ -1,0 +1,15 @@
+ecommerce_dw:
+  target: aws
+  outputs:
+    aws:
+      type: redshift
+      host: "{{ env_var('REDSHIFT_HOST') }}"
+      port: 5439
+      user: "{{ env_var('REDSHIFT_USER', 'dwadmin') }}"
+      password: "{{ env_var('DBT_ENV_SECRET_REDSHIFT_PASSWORD') }}"
+      dbname: "{{ env_var('REDSHIFT_DATABASE', 'ecommerce') }}"
+      schema: intermediate
+      threads: 1
+      sslmode: verify-full
+      connect_timeout: 10
+      retries: 2

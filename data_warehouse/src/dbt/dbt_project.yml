@@ -1,0 +1,52 @@
+name: ecommerce_dw
+version: '1.0.0'
+config-version: 2
+profile: ecommerce_dw
+
+model-paths: ["models"]
+test-paths: ["tests"]
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  ecommerce_dw:
+    intermediate:
+      +schema: intermediate
+      +materialized: view
+    quarantine:
+      +schema: quarantine
+      +materialized: table
+    marts:
+      +schema: marts
+      +materialized: table
+      # Reconstruir tablas elimina sus grants. Mantener únicamente el lector BI
+      # en las cuatro relaciones que usa; antes de habilitar QuickSight no aplica.
+      fct_sales:
+        +grants: "{{ {'select': ['de_dw_aws_qs_reader']} if env_var('QUICKSIGHT_DATASET_ID', '') else {} }}"
+      dim_date:
+        +grants: "{{ {'select': ['de_dw_aws_qs_reader']} if env_var('QUICKSIGHT_DATASET_ID', '') else {} }}"
+      dim_product:
+        +grants: "{{ {'select': ['de_dw_aws_qs_reader']} if env_var('QUICKSIGHT_DATASET_ID', '') else {} }}"
+      dim_sales_channel:
+        +grants: "{{ {'select': ['de_dw_aws_qs_reader']} if env_var('QUICKSIGHT_DATASET_ID', '') else {} }}"
+
+vars:
+  valid_sales_channels: ['web', 'móvil', 'tienda']
+  valid_event_types: ['vista_producto', 'busqueda', 'agregar_carrito']
+  business_timezone: 'America/Bogota'
+  date_dimension_start: '2025-01-01'
+  date_dimension_end: '2028-01-01'  # fin exclusivo, compatible con dbt_utils.date_spine
+  incremental_lookback_days: 7  # días recientes que se reprocesan para absorber datos tardíos
+
+seeds:
+  ecommerce_dw:
+    colombia_holidays:
+      +column_types:
+        date: date
+
+snapshot-paths: ["snapshots"]
+seed-paths: ["seeds"]
+snapshots:
+  ecommerce_dw:
+    +target_schema: intermediate
+
+packages-install-path: "{{ env_var('DBT_PACKAGES_DIR', 'dbt_packages') }}"
